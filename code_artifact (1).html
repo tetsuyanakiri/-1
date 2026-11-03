@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ผจญภัยสร้างผังงาน พิชิตภารกิจ (Flowchart Adventure)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Prompt -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Prompt', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        /* Custom Animations */
+        @keyframes bounce-gentle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
+            50% { box-shadow: 0 0 25px rgba(59, 130, 246, 0.9); }
+        }
+        
+        .animate-bounce-gentle {
+            animation: bounce-gentle 2.5s infinite ease-in-out;
+        }
+        
+        .animate-glow {
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+        
+        /* Flowchart shape styles */
+        .shape-oval {
+            border-radius: 9999px;
+            background: linear-gradient(135deg, #60A5FA, #2563EB);
+        }
+        .shape-process {
+            border-radius: 0.75rem;
+            background: linear-gradient(135deg, #34D399, #059669);
+        }
+        .shape-io {
+            transform: skewX(-12deg);
+            border-radius: 0.5rem;
+            background: linear-gradient(135deg, #FBBF24, #D97706);
+        }
+        .shape-io-inner {
+            transform: skewX(12deg);
+        }
+        .shape-decision {
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+            background: linear-gradient(135deg, #F472B6, #DB2777);
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+
+        /* Certificate Print Styling */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #certificate-print-area, #certificate-print-area * {
+                visibility: visible;
+            }
+            #certificate-print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden">
+
+    <!-- TOP HEADER / NAVBAR -->
+    <header class="bg-slate-800/90 backdrop-blur-md border-b border-slate-700 sticky top-0 z-50 px-4 py-3 shadow-lg">
+        <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-3">
+            <!-- Logo & Title -->
+            <div class="flex items-center gap-3 cursor-pointer" onclick="app.showScreen('home')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold text-xl shadow-md">
+                    🤖
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg md:text-xl text-cyan-400 leading-tight">ผจญภัยสร้างผังงาน</h1>
+                    <p class="text-xs text-slate-400">เมืองหุ่นยนต์ Robot City - ป.6</p>
+                </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="flex items-center gap-4 bg-slate-900/80 px-4 py-2 rounded-2xl border border-slate-700">
+                <!-- Stars -->
+                <div class="flex items-center gap-1.5" title="ดาวประเมิน">
+                    <span class="text-xl">⭐</span>
+                    <span id="header-stars" class="font-bold text-amber-400 text-base md:text-lg">0/3</span>
+                </div>
+                <div class="h-5 w-px bg-slate-700"></div>
+                <!-- Score -->
+                <div class="flex items-center gap-1.5" title="คะแนนรวม">
+                    <span class="text-xl">🏆</span>
+                    <span id="header-score" class="font-bold text-emerald-400 text-base md:text-lg">0</span>
+                    <span class="text-xs text-slate-400">/ 100 คะแนน</span>
+                </div>
+                <div class="h-5 w-px bg-slate-700"></div>
+                <!-- Level Indicator -->
+                <div class="text-xs font-semibold px-2.5 py-1 bg-cyan-950 text-cyan-300 rounded-lg border border-cyan-800" id="header-level-badge">
+                    ด่าน 1/5
+                </div>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="flex items-center gap-2">
+                <!-- Sound Toggle -->
+                <button id="btn-sound" onclick="app.toggleSound()" class="p-2.5 bg-slate-700 hover:bg-slate-600 rounded-xl text-slate-200 transition-all text-sm flex items-center gap-1" title="เปิด/ปิด เสียง">
+                    <span id="sound-icon">🔊</span>
+                </button>
+                <!-- Reset Game -->
+                <button onclick="app.resetProgress()" class="p-2.5 bg-rose-900/50 hover:bg-rose-800 border border-rose-700 rounded-xl text-rose-200 transition-all text-xs font-medium flex items-center gap-1" title="เริ่มใหม่ทั้งหมด">
+                    🔄 <span>เริ่มใหม่</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Global Progress Bar -->
+        <div class="max-w-6xl mx-auto mt-2 bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-700/50">
+            <div id="header-progress" class="bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 h-full w-0 transition-all duration-500"></div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="max-w-5xl mx-auto w-full p-4 flex-grow flex flex-col justify-center">
+
+        <!-- SCREEN: HOME / MENU -->
+        <section id="screen-home" class="space-y-6 text-center py-6">
+            <div class="relative inline-block">
+                <div class="w-28 h-28 md:w-36 md:h-36 mx-auto bg-gradient-to-b from-cyan-400 to-blue-600 rounded-full p-1 animate-bounce-gentle shadow-2xl flex items-center justify-center">
+                    <!-- SVG Robot Avatar "น้องโฟลว์" -->
+                    <svg class="w-24 h-24 md:w-28 md:h-28" viewBox="0 0 100 100">
+                        <rect x="25" y="30" width="50" height="40" rx="10" fill="#E2E8F0" stroke="#1E293B" stroke-width="3"/>
+                        <circle cx="40" cy="48" r="6" fill="#0284C7"/>
+                        <circle cx="60" cy="48" r="6" fill="#0284C7"/>
+                        <circle cx="42" cy="46" r="2" fill="#FFFFFF"/>
+                        <circle cx="62" cy="46" r="2" fill="#FFFFFF"/>
+                        <path d="M 40 60 Q 50 68 60 60" fill="none" stroke="#1E293B" stroke-width="3" stroke-linecap="round"/>
+                        <rect x="44" y="15" width="12" height="15" fill="#94A3B8"/>
+                        <circle cx="50" cy="12" r="6" fill="#EF4444"/>
+                        <rect x="12" y="40" width="13" height="20" rx="5" fill="#64748B"/>
+                        <rect x="75" y="40" width="13" height="20" rx="5" fill="#64748B"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="space-y-2 max-w-xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-300">
+                    ผจญภัยสร้างผังงาน พิชิตภารกิจ
+                </h2>
+                <p class="text-slate-300 text-sm md:text-base leading-relaxed">
+                    สวัสดีเพื่อนๆ! ฉันคือ <span class="text-cyan-400 font-bold">"น้องโฟลว์"</span> หุ่นยนต์นำทางแห่ง Robot City! 
+                    มาร่วมเรียนรู้การเขียนผังงาน (Flowchart) และช่วยฉันแก้ปัญหาในเมืองหุ่นยนต์กันเลย!
+                </p>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="flex flex-col sm:flex-row justify-center items-center gap-4 max-w-md mx-auto pt-4">
+                <button onclick="app.showScreen('learn')" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-900 font-bold text-lg rounded-2xl shadow-lg transform hover:-translate-y-1 transition-all flex items-center justify-center gap-2">
+                    📖 <span>เรียนรู้สัญลักษณ์ก่อนเล่น</span>
+                </button>
+                <button onclick="app.startMission()" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-lg rounded-2xl shadow-xl transform hover:-translate-y-1 transition-all flex items-center justify-center gap-2 animate-glow">
+                    🚀 <span>เริ่มตะลุยภารกิจ!</span>
+                </button>
+            </div>
+
+            <!-- Mission Selection Grid -->
+            <div class="pt-8 border-t border-slate-800 max-w-3xl mx-auto">
+                <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">เลือกด่านภารกิจ</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-5 gap-3" id="level-select-grid">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </section>
+
+
+        <!-- SCREEN: KNOWLEDGE BASE / LEARN SYMBOLS -->
+        <section id="screen-learn" class="hidden space-y-6 py-4">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-amber-400 flex items-center gap-2">
+                        <span>📚</span> ความรู้ก่อนเริ่มเกม: สัญลักษณ์ผังงาน (Flowchart)
+                    </h2>
+                    <p class="text-xs text-slate-400">ผังงานคือการใช้รูปภาพสัญลักษณ์บอกลำดับขั้นตอนการทำงาน</p>
+                </div>
+                <button onclick="app.startMission()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl text-sm transition">
+                    ไปลุยภารกิจ ➔
+                </button>
+            </div>
+
+            <!-- Symbols Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Symbol 1: Oval -->
+                <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-4 flex gap-4 items-center hover:border-blue-500 transition">
+                    <div class="w-24 h-14 shape-oval flex items-center justify-center font-bold text-white shadow-md text-sm shrink-0">
+                        เริ่ม / จบ
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-blue-400 text-base">1. วงรี (Oval / Capsule)</h3>
+                        <p class="text-xs font-semibold text-slate-300">ชื่อ: จุดเริ่มต้นและจุดสิ้นสุด (Start / End)</p>
+                        <p class="text-xs text-slate-400 mt-1">ใช้ระบุจุดเริ่มต้นแรกสุด และจุดสิ้นสุดสุดท้ายของขั้นตอนการทำงานทั้งหมด</p>
+                    </div>
+                </div>
+
+                <!-- Symbol 2: Rectangle -->
+                <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-4 flex gap-4 items-center hover:border-emerald-500 transition">
+                    <div class="w-24 h-14 shape-process flex items-center justify-center font-bold text-white shadow-md text-sm shrink-0">
+                        การทำงาน
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-emerald-400 text-base">2. สี่เหลี่ยมผืนผ้า (Rectangle)</h3>
+                        <p class="text-xs font-semibold text-slate-300">ชื่อ: การประมวลผล / ขั้นตอนการทำงาน (Process)</p>
+                        <p class="text-xs text-slate-400 mt-1">ใช้สำหรับการคำนวณ การกำหนดค่า หรือขั้นตอนการปฏิบัติตามปกติ</p>
+                    </div>
+                </div>
+
+                <!-- Symbol 3: Parallelogram -->
+                <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-4 flex gap-4 items-center hover:border-amber-500 transition">
+                    <div class="w-24 h-14 shape-io flex items-center justify-center shadow-md text-sm shrink-0">
+                        <span class="shape-io-inner font-bold text-slate-900">รับ / แสดงผล</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-amber-400 text-base">3. สี่เหลี่ยมด้านขนาน (Parallelogram)</h3>
+                        <p class="text-xs font-semibold text-slate-300">ชื่อ: การรับข้อมูลหรือแสดงผลข้อมูล (Input / Output)</p>
+                        <p class="text-xs text-slate-400 mt-1">ใช้รับข้อมูลเข้ามาทำงาน หรือแสดงผลลัพธ์ออกทางจอภาพ/เครื่องพิมพ์</p>
+                    </div>
+                </div>
+
+                <!-- Symbol 4: Diamond -->
+                <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-4 flex gap-4 items-center hover:border-pink-500 transition">
+                    <div class="w-24 h-16 flex items-center justify-center relative shrink-0">
+                        <div class="w-20 h-20 shape-decision rotate-45 flex items-center justify-center shadow-md"></div>
+                        <span class="absolute font-bold text-white text-xs text-center z-10">การตัดสินใจ</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-pink-400 text-base">4. สี่เหลี่ยมข้าวหลามตัด (Diamond)</h3>
+                        <p class="text-xs font-semibold text-slate-300">ชื่อ: การตัดสินใจ / ตรวจสอบเงื่อนไข (Decision)</p>
+                        <p class="text-xs text-slate-400 mt-1">ใช้เลือกเส้นทางทำงานโดยตรวจสอบเงื่อนไข ซึ่งจะมีทางออก 2 ทาง คือ "ใช่" หรือ "ไม่ใช่"</p>
+                    </div>
+                </div>
+
+                <!-- Symbol 5: Arrow -->
+                <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-4 flex gap-4 items-center hover:border-cyan-500 transition md:col-span-2">
+                    <div class="w-24 h-14 bg-slate-900 rounded-xl border border-slate-700 flex items-center justify-center shrink-0">
+                        <svg class="w-12 h-12 text-cyan-400" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                            <path d="M19 14l-7 7m0 0l-7-7m7 7V3" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-cyan-400 text-base">5. ลูกศร (Flowline Arrow)</h3>
+                        <p class="text-xs font-semibold text-slate-300">ชื่อ: ทิศทางการทำงาน (Flowline)</p>
+                        <p class="text-xs text-slate-400 mt-1">ใช้เชื่อมต่อสัญลักษณ์ต่างๆ เพื่อบอกลำดับและทิศทางของขั้นตอนตั้งแต่เริ่มต้นจนสิ้นสุด</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center pt-4">
+                <button onclick="app.startMission()" class="px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold rounded-2xl shadow-lg text-lg transition">
+                    พร้อมแล้ว! เริ่มทำภารกิจด่านที่ 1 ➔
+                </button>
+            </div>
+        </section>
+
+
+        <!-- SCREEN: LEVEL 1 (Symbol Matching Quiz) -->
+        <section id="screen-level-1" class="hidden space-y-4 py-2">
+            <!-- Level Header Card -->
+            <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                <div>
+                    <span class="text-xs font-bold text-cyan-400 bg-cyan-950 px-2.5 py-1 rounded-full border border-cyan-800">ด่านที่ 1</span>
+                    <h2 class="text-xl font-bold text-white mt-1">🎯 นักล่าสัญลักษณ์ (Symbol Matching)</h2>
+                    <p class="text-xs text-slate-400">เลือกสัญลักษณ์ผังงานให้ตรงกับคำถามและหน้าที่ความรับผิดชอบให้ถูกต้อง</p>
+                </div>
+                <div class="flex items-center gap-2 text-sm font-bold bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-700">
+                    <span>ข้อที่:</span>
+                    <span id="l1-question-idx" class="text-cyan-400">1</span> / 5
+                </div>
+            </div>
+
+            <!-- Quiz Card Container -->
+            <div id="l1-quiz-container" class="bg-slate-800/70 border border-slate-700 rounded-2xl p-6 space-y-6">
+                <!-- Question Text -->
+                <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-700/80">
+                    <p class="text-xs text-slate-400 font-semibold mb-1">คำถามจากน้องโฟลว์:</p>
+                    <p id="l1-question-text" class="text-lg font-semibold text-amber-300">กำลังโหลดคำถาม...</p>
+                </div>
+
+                <!-- Answer Options (Grid) -->
+                <div id="l1-options-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Options injected via JS -->
+                </div>
+            </div>
+        </section>
+
+
+        <!-- SCREEN: LEVEL 2 (Sequence Ordering) -->
+        <section id="screen-level-2" class="hidden space-y-4 py-2">
+            <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                <div>
+                    <span class="text-xs font-bold text-emerald-400 bg-emerald-950 px-2.5 py-1 rounded-full border border-emerald-800">ด่านที่ 2</span>
+                    <h2 class="text-xl font-bold text-white mt-1">🧩 เรียงลำดับให้ถูกต้อง (Sequence Ordering)</h2>
+                    <p class="text-xs text-slate-400">เรียงลำดับขั้นตอน "การแปรงฟัน" โดยใช้การลากวาง หรือกดปุ่ม ⬆️ ⬇️ ให้ถูกต้อง</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/70 border border-slate-700 rounded-2xl p-6 space-y-6">
+                <div class="bg-slate-900/90 p-3.5 rounded-xl border border-slate-700 text-sm text-cyan-300 flex items-center gap-2">
+                    <span class="text-xl">💡</span>
+                    <span><strong>วิธีเล่น:</strong> ลากสลับตำแหน่งข้อความ (Drag & Drop) หรือกดปุ่ม ⬆️ ขึ้น และ ⬇️ ลง เพื่อจัดลำดับขั้นตอนจาก 1 ถึง 5 แล้วกด <strong>"ตรวจคำตอบ"</strong></span>
+                </div>
+
+                <!-- Sequence List Container -->
+                <div id="l2-sequence-list" class="space-y-3">
+                    <!-- Items rendered dynamically -->
+                </div>
+
+                <!-- Feedback Banner for Level 2 -->
+                <div id="l2-feedback" class="hidden p-4 rounded-xl text-sm font-semibold flex items-center gap-2"></div>
+
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-3 pt-2">
+                    <button onclick="app.shuffleLevel2()" class="w-full sm:w-auto px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold rounded-xl text-xs transition flex items-center justify-center gap-1.5">
+                        🔀 <span>สลับตำแหน่งใหม่</span>
+                    </button>
+                    <button onclick="app.checkLevel2()" class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold rounded-xl text-base shadow-lg transition flex items-center justify-center gap-2">
+                        ✓ <span>ตรวจคำตอบด่านที่ 2</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- SCREEN: LEVEL 3 (Beginner Flowchart Builder) -->
+        <section id="screen-level-3" class="hidden space-y-4 py-2">
+            <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-4">
+                <span class="text-xs font-bold text-amber-400 bg-amber-950 px-2.5 py-1 rounded-full border border-amber-800">ด่านที่ 3</span>
+                <h2 class="text-xl font-bold text-white mt-1">🛠️ นักสร้างผังงานมือใหม่ (Beginner Flowchart Builder)</h2>
+                <p class="text-xs text-slate-400">โจทย์: การเตรียมตัวไปโรงเรียน (7 ขั้นตอน) ให้เลือกสัญลักษณ์และข้อความให้ถูกต้องในแต่ละช่อง</p>
+            </div>
+
+            <div class="bg-slate-800/70 border border-slate-700 rounded-2xl p-4 md:p-6 space-y-6">
+                <!-- Vertical Flowchart Target Builder -->
+                <div id="l3-flowchart-slots" class="max-w-md mx-auto space-y-3">
+                    <!-- 7 Step slots generated by JS -->
+                </div>
+
+                <div class="flex justify-center pt-4">
+                    <button onclick="app.checkLevel3()" class="px-8 py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-900 font-bold rounded-xl text-base shadow-lg transition">
+                        ✓ ตรวจผังงานด่านที่ 3
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- SCREEN: LEVEL 4 (Flowchart Detective) -->
+        <section id="screen-level-4" class="hidden space-y-4 py-2">
+            <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-4 flex justify-between items-center">
+                <div>
+                    <span class="text-xs font-bold text-pink-400 bg-pink-950 px-2.5 py-1 rounded-full border border-pink-800">ด่านที่ 4</span>
+                    <h2 class="text-xl font-bold text-white mt-1">🔍 นักสืบจับผิดผังงาน (Flowchart Detective)</h2>
+                    <p class="text-xs text-slate-400">ค้นหาข้อผิดพลาดในผังงานและเลือกวิธีแก้ไขให้ถูกต้อง</p>
+                </div>
+                <div class="text-sm font-bold bg-slate-900 px-3 py-1 rounded-xl border border-slate-700">
+                    เคสที่: <span id="l4-case-idx" class="text-pink-400">1</span> / 4
+                </div>
+            </div>
+
+            <div class="bg-slate-800/70 border border-slate-700 rounded-2xl p-6 space-y-6">
+                <!-- Detective Scenario Box -->
+                <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 space-y-3">
+                    <div class="flex items-center gap-2 text-pink-400 font-bold text-sm">
+                        <span>🚨</span> <span id="l4-scenario-title">สถานการณ์ผังงานที่มีข้อผิดพลาด</span>
+                    </div>
+                    <!-- Mock diagram visual description -->
+                    <div id="l4-scenario-visual" class="bg-slate-950 p-4 rounded-lg border border-slate-800 text-center font-mono text-sm space-y-2">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- Fix Options -->
+                <div class="space-y-2">
+                    <p class="text-sm font-bold text-slate-300">ระบุข้อผิดพลาดและวิธีแก้ไขที่ถูกต้อง:</p>
+                    <div id="l4-options" class="space-y-2">
+                        <!-- Options injected by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- SCREEN: LEVEL 5 (Master Missions - 5 Scenarios) -->
+        <section id="screen-level-5" class="hidden space-y-4 py-2">
+            <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-4 flex justify-between items-center">
+                <div>
+                    <span class="text-xs font-bold text-purple-400 bg-purple-950 px-2.5 py-1 rounded-full border border-purple-800">ด่านที่ 5</span>
+                    <h2 class="text-xl font-bold text-white mt-1">👑 สุดยอดภารกิจนักสร้างผังงาน (Master Flowchart)</h2>
+                    <p class="text-xs text-slate-400">วิเคราะห์สถานการณ์และสร้างผังงานที่มีเงื่อนไขการตัดสินใจ</p>
+                </div>
+                <div class="text-sm font-bold bg-slate-900 px-3 py-1 rounded-xl border border-slate-700">
+                    ภารกิจ: <span id="l5-mission-idx" class="text-purple-400">1</span> / 5
+                </div>
+            </div>
+
+            <div class="bg-slate-800/70 border border-slate-700 rounded-2xl p-6 space-y-6">
+                <!-- Mission Context Box -->
+                <div class="bg-slate-900/90 p-4 rounded-xl border border-purple-900/50">
+                    <div class="flex items-center gap-2 text-amber-300 font-bold text-base mb-1">
+                        <span>📜</span> <span id="l5-mission-title">โจทย์ภารกิจ</span>
+                    </div>
+                    <p id="l5-mission-desc" class="text-sm text-slate-200 leading-relaxed">กำลังโหลดโจทย์...</p>
+                </div>
+
+                <!-- Mission Interactive Builder Area -->
+                <div id="l5-builder-area" class="space-y-4">
+                    <!-- Dynamic interactive component for Level 5 scenarios -->
+                </div>
+
+                <div class="flex justify-end gap-3 pt-2">
+                    <button onclick="app.checkLevel5()" class="px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl text-base shadow-lg transition">
+                        ✓ ส่งผังงานพิชิตภารกิจ
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- SCREEN: SUMMARY / VICTORY (Replacing Certificate) -->
+        <section id="screen-summary" class="hidden space-y-6 py-6 text-center">
+            <div class="bg-slate-800 border border-slate-700 rounded-3xl p-8 max-w-xl mx-auto space-y-6 shadow-2xl relative overflow-hidden">
+                <div class="w-24 h-24 mx-auto bg-gradient-to-tr from-amber-400 to-yellow-500 rounded-full flex items-center justify-center text-5xl shadow-lg animate-bounce">
+                    🏆
+                </div>
+                
+                <div class="space-y-2">
+                    <span id="summary-grade" class="text-xs font-bold text-amber-400 bg-amber-950 px-3 py-1 rounded-full border border-amber-700">ระดับ: สุดยอดนักสร้างผังงาน</span>
+                    <h2 class="text-3xl font-extrabold text-white">ผลการประเมินภารกิจ</h2>
+                    <p id="summary-cheer" class="text-sm text-cyan-300 font-semibold">"สุดยอด! เธอเป็นนักสร้างผังงานแล้ว"</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 bg-slate-900/80 p-4 rounded-2xl border border-slate-700">
+                    <div class="text-center">
+                        <p class="text-xs text-slate-400 font-medium">คะแนนรวมทั้งหมด</p>
+                        <p id="summary-score" class="text-3xl font-extrabold text-emerald-400">0 / 100</p>
+                        <p class="text-[10px] text-slate-500">คะแนน (เต็ม 100)</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-xs text-slate-400 font-medium">ดาวระดับความสามารถ</p>
+                        <p id="summary-stars" class="text-3xl font-extrabold text-amber-400">⭐⭐⭐</p>
+                        <p class="text-[10px] text-slate-500">ยศนักสร้างผังงาน</p>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-3 pt-2">
+                    <button onclick="app.restartGame()" class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold rounded-2xl shadow-lg transition flex items-center justify-center gap-2 text-base">
+                        🔄 <span>เล่นใหม่อีกครั้ง</span>
+                    </button>
+                    <button onclick="app.showScreen('learn')" class="w-full sm:w-auto px-6 py-3.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold rounded-2xl transition flex items-center justify-center gap-2 text-base">
+                        📖 <span>ทบทวนเนื้อหา</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MASCOT FLOATING DIALOGUE FOOTER -->
+    <footer class="bg-slate-800/90 border-t border-slate-700 p-4 relative z-40">
+        <div class="max-w-4xl mx-auto flex items-center gap-4">
+            <!-- Mascot Face -->
+            <div class="w-12 h-12 rounded-2xl bg-cyan-600 flex items-center justify-center shrink-0 border border-cyan-400 shadow-md">
+                <span class="text-2xl animate-bounce-gentle">🤖</span>
+            </div>
+            <!-- Speech Bubble -->
+            <div class="flex-grow bg-slate-900 border border-slate-700 rounded-2xl p-3 relative">
+                <div class="absolute -left-2 top-4 w-3 h-3 bg-slate-900 border-l border-b border-slate-700 transform rotate-45"></div>
+                <p id="mascot-speech" class="text-xs md:text-sm text-cyan-200 font-medium">
+                    ยินดีต้อนรับเข้าสู่เมืองหุ่นยนต์ Robot City! กดปุ่ม "เรียนรู้สัญลักษณ์ก่อนเล่น" หรือ "เริ่มตะลุยภารกิจ" ได้เลยครับ!
+                </p>
+            </div>
+        </div>
+    </footer>
+
+
+    <!-- AUDIO SYNTHESIZER & GAME SCRIPT -->
+    <script>
+        /**
+         * Web Audio API Synthesizer (No external audio files required)
+         */
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+            }
+
+            play(type) {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(200, now + 0.08);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'correct') {
+                    // Upward Arpeggio
+                    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                    notes.forEach((freq, idx) => {
+                        const noteOsc = this.ctx.createOscillator();
+                        const noteGain = this.ctx.createGain();
+                        noteOsc.connect(noteGain);
+                        noteGain.connect(this.ctx.destination);
+
+                        noteOsc.type = 'triangle';
+                        noteOsc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                        noteGain.gain.setValueAtTime(0.15, now + idx * 0.08);
+                        noteGain.gain.linearRampToValueAtTime(0.01, now + idx * 0.08 + 0.15);
+
+                        noteOsc.start(now + idx * 0.08);
+                        noteOsc.stop(now + idx * 0.08 + 0.15);
+                    });
+                } else if (type === 'wrong') {
+                    // Buzz
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180, now);
+                    osc.frequency.linearRampToValueAtTime(110, now + 0.25);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'win') {
+                    // Fanfare Chime
+                    const notes = [440, 554.37, 659.25, 880];
+                    notes.forEach((freq, idx) => {
+                        const noteOsc = this.ctx.createOscillator();
+                        const noteGain = this.ctx.createGain();
+                        noteOsc.connect(noteGain);
+                        noteGain.connect(this.ctx.destination);
+
+                        noteOsc.type = 'sine';
+                        noteOsc.frequency.setValueAtTime(freq, now + idx * 0.12);
+                        noteGain.gain.setValueAtTime(0.2, now + idx * 0.12);
+                        noteGain.gain.linearRampToValueAtTime(0.01, now + idx * 0.12 + 0.3);
+
+                        noteOsc.start(now + idx * 0.12);
+                        noteOsc.stop(now + idx * 0.12 + 0.3);
+                    });
+                }
+            }
+        }
+
+        /**
+         * Main Educational Game Logic
+         */
+        class FlowchartApp {
+            constructor() {
+                this.sound = new SoundEngine();
+                this.score = 0;
+                this.currentLevel = 1;
+                this.unlockedLevel = 1;
+
+                // Level 1 Data
+                this.l1Data = [
+                    {
+                        q: "สัญลักษณ์ใดใช้แสดงจุดเริ่มต้นและจุดสิ้นสุดของผังงาน?",
+                        options: [
+                            { text: "วงรี (Oval)", shape: "shape-oval", correct: true },
+                            { text: "สี่เหลี่ยมผืนผ้า (Rectangle)", shape: "shape-process", correct: false },
+                            { text: "สี่เหลี่ยมด้านขนาน (Parallelogram)", shape: "shape-io", correct: false },
+                            { text: "สี่เหลี่ยมข้าวหลามตัด (Diamond)", shape: "shape-decision", correct: false }
+                        ],
+                        hint: "คิดถึงรูปร่างแคปซูลยา หรือวงรี ที่เป็นทางเข้าออกแรกสุดและสุดท้ายครับ!"
+                    },
+                    {
+                        q: "เมื่อต้องการคำนวณเงินทอน หรือบีบยาสีฟันลงบนแปรง ต้องใช้สัญลักษณ์ใด?",
+                        options: [
+                            { text: "วงรี (Oval)", shape: "shape-oval", correct: false },
+                            { text: "สี่เหลี่ยมผืนผ้า (Process)", shape: "shape-process", correct: true },
+                            { text: "สี่เหลี่ยมด้านขนาน (Input/Output)", shape: "shape-io", correct: false },
+                            { text: "ลูกศร (Flowline)", shape: "shape-process", correct: false }
+                        ],
+                        hint: "การประมวลผลหรือทำกิจกรรมปกติต้องใช้ทรงสี่เหลี่ยมผืนผ้าครับ!"
+                    },
+                    {
+                        q: "สัญลักษณ์สี่เหลี่ยมข้าวหลามตัด (Diamond) ใช้สำหรับทำหน้าที่ใด?",
+                        options: [
+                            { text: "จุดเริ่มต้นระบบ", shape: "shape-oval", correct: false },
+                            { text: "การคำนวณตัวเลข", shape: "shape-process", correct: false },
+                            { text: "การตัดสินใจ / ตรวจสอบเงื่อนไข", shape: "shape-decision", correct: true },
+                            { text: "การรับข้อมูลจากคีย์บอร์ด", shape: "shape-io", correct: false }
+                        ],
+                        hint: "สี่เหลี่ยมข้าวหลามตัดใช้ถามคำถามที่มีทางออก 2 ทาง เช่น ใช่ หรือ ไม่ใช่ ครับ"
+                    },
+                    {
+                        q: "หากต้องการแสดงผลข้อความ 'ผ่าน' ออกทางหน้าจอ ควรเลือกใช้สัญลักษณ์ใด?",
+                        options: [
+                            { text: "สี่เหลี่ยมด้านขนาน (Input/Output)", shape: "shape-io", correct: true },
+                            { text: "สี่เหลี่ยมผืนผ้า (Process)", shape: "shape-process", correct: false },
+                            { text: "วงรี (Start/End)", shape: "shape-oval", correct: false },
+                            { text: "สี่เหลี่ยมข้าวหลามตัด (Decision)", shape: "shape-decision", correct: false }
+                        ],
+                        hint: "การแสดงผลออกทางจอภาพ หรือรับข้อมูลเข้ามา ใช้ทรงสี่เหลี่ยมด้านขนานครับ"
+                    },
+                    {
+                        q: "ลูกศร (Flowline Arrow) ในผังงานมีประโยชน์อย่างไร?",
+                        options: [
+                            { text: "คำนวณผลลัพธ์", shape: "shape-process", correct: false },
+                            { text: "บอกทิศทางและลำดับการทำงาน", shape: "shape-oval", correct: true },
+                            { text: "แสดงจุดสิ้นสุด", shape: "shape-oval", correct: false },
+                            { text: "ตรวจสอบว่าฝนตกหรือไม่", shape: "shape-decision", correct: false }
+                        ],
+                        hint: "ลูกศรใช้เชื่อมเส้นทางเพื่อบอกว่าต้องทำขั้นตอนไหนเป็นลำดับถัดไปครับ"
+                    }
+                ];
+                this.l1Idx = 0;
+
+                // Level 2 Data (Sequence)
+                this.l2ItemsOriginal = [
+                    { id: 1, text: "หยิบแปรงสีฟัน" },
+                    { id: 2, text: "บีบยาสีฟันลงบนแปรง" },
+                    { id: 3, text: "แปรงฟันให้ทั่ว" },
+                    { id: 4, text: "บ้วนปากด้วยน้ำสะอาด" },
+                    { id: 5, text: "เก็บแปรงสีฟัน" }
+                ];
+                this.l2Items = [];
+                this.l2Checked = false;
+                this.l2WrongIndices = [];
+                this.l2DraggedIdx = null;
+
+                // Level 3 Data (Beginner Flowchart)
+                this.l3Steps = [
+                    { step: 1, label: "เริ่มต้น", shape: "oval", correctVal: "เริ่มต้น" },
+                    { step: 2, label: "ขั้นตอนที่ 1", shape: "process", correctVal: "ตื่นนอน" },
+                    { step: 3, label: "ขั้นตอนที่ 2", shape: "process", correctVal: "อาบน้ำ" },
+                    { step: 4, label: "ขั้นตอนที่ 3", shape: "process", correctVal: "แต่งตัว" },
+                    { step: 5, label: "ขั้นตอนที่ 4", shape: "process", correctVal: "รับประทานอาหารเช้า" },
+                    { step: 6, label: "ขั้นตอนที่ 5", shape: "process", correctVal: "ไปโรงเรียน" },
+                    { step: 7, label: "สิ้นสุด", shape: "oval", correctVal: "สิ้นสุด" }
+                ];
+                this.l3OptionsPool = [
+                    "รับประทานอาหารเช้า", "ตื่นนอน", "ไปโรงเรียน", "เริ่มต้น", "แต่งตัว", "สิ้นสุด", "อาบน้ำ"
+                ];
+
+                // Level 4 Data (Detective)
+                this.l4Cases = [
+                    {
+                        title: "เคสที่ 1: การต้มบะหมี่สำเร็จรูป",
+                        visual: "[ ? ] ➔ (ใส่น้ำในหม้อ) ➔ (ต้มน้ำให้เดือด) ➔ (ใส่บะหมี่) ➔ [ สิ้นสุด ]",
+                        options: [
+                            { text: "ขาดสัญลักษณ์ 'เริ่มต้น' ที่จุดแรกสุดของผังงาน", correct: true },
+                            { text: "ต้มน้ำให้เดือด ต้องใช้สี่เหลี่ยมข้าวหลามตัด", correct: false },
+                            { text: "ผังงานไม่มีข้อผิดพลาด", correct: false }
+                        ],
+                        hint: "ลองดูตรงสัญลักษณ์แรกสุดซ้ายมือสิครับ ยังไม่มีคำว่า เริ่มต้น เลย!"
+                    },
+                    {
+                        title: "เคสที่ 2: การตรวจสอบอายุเข้าชมภาพยนตร์",
+                        visual: "(เริ่มต้น) ➔ [ อายุมากกว่า 15 ปีหรือไม่? ] ➔ (ซื้อตั๋วหนัง) ➔ (สิ้นสุด)",
+                        options: [
+                            { text: "ใช้สี่เหลี่ยมผืนผ้ากับคำถามเงื่อนไข ควรเปลี่ยนเป็นสี่เหลี่ยมข้าวหลามตัด", correct: true },
+                            { text: "คำว่า ซื้อตั๋วหนัง ต้องเปลี่ยนเป็นสี่เหลี่ยมด้านขนาน", correct: false },
+                            { text: "ลืมใส่จุดเริ่มต้น", correct: false }
+                        ],
+                        hint: "การตั้งคำถามตรวจสอบอายุเป็น 'เงื่อนไข' ต้องใช้สี่เหลี่ยมข้าวหลามตัดนะ!"
+                    },
+                    {
+                        title: "เคสที่ 3: ตรวจสอบฝนตกเพื่อพกร่ม",
+                        visual: "(เริ่มต้น) ➔ < ฝนตกหรือไม่? > ──(ใช่)──➔ [ หยิบร่ม ] ➔ (ออกจากบ้าน)",
+                        options: [
+                            { text: "ขาดเส้นทางออกกรณีเงื่อนไขเป็น 'ไม่ใช่'", correct: true },
+                            { text: "คำว่า หยิบร่ม ต้องใช้สี่เหลี่ยมด้านขนาน", correct: false },
+                            { text: "ห้ามใช้เส้นลูกศรชี้ไปทางขวา", correct: false }
+                        ],
+                        hint: "สี่เหลี่ยมข้าวหลามตัดตัดสินใจ ต้องมีทางออก 2 ทาง คือ ใช่ และ ไม่ใช่ ครับ!"
+                    },
+                    {
+                        title: "เคสที่ 4: ผังงานทิศทางลูกศรปริศนา",
+                        visual: "(เริ่มต้น) ➔ [ ทำการบ้าน ] ⬅️ (สิ้นสุด)",
+                        options: [
+                            { text: "ลูกศรระหว่าง ทำการบ้าน กับ สิ้นสุด ชี้ผิดทิศทาง", correct: true },
+                            { text: "ทำการบ้าน ต้องใช้ทรงวงรี", correct: false },
+                            { text: "ผังงานถูกต้องสมบูรณ์แล้ว", correct: false }
+                        ],
+                        hint: "ทิศทางของขั้นตอนต้องไหลจากเริ่มต้นไปหาสิ้นสุดเสมอ ลูกศรกำลังชี้สวนทางอยู่ครับ"
+                    }
+                ];
+                this.l4Idx = 0;
+
+                // Level 5 Data (Master Missions)
+                this.l5Missions = [
+                    {
+                        title: "ภารกิจที่ 1: ภารกิจพกร่ม ☔",
+                        desc: "ก่อนออกจากบ้าน ต้องตรวจสอบว่า 'ฝนตกหรือไม่' ถ้าฝนตก (ใช่) ให้ 'หยิบร่ม' แต่ถ้าฝนไม่ตก (ไม่ใช่) ให้ 'ออกจากบ้าน' ได้เลย",
+                        slot1Correct: "ฝนตกหรือไม่?",
+                        slot2Correct: "หยิบร่ม",
+                        slot3Correct: "ออกจากบ้าน",
+                        pool: ["ฝนตกหรือไม่?", "หยิบร่ม", "ออกจากบ้าน", "ทำการบ้าน", "รับประทานอาหาร"]
+                    },
+                    {
+                        title: "ภารกิจที่ 2: ภารกิจคำนวณเงินทอน 🪙",
+                        desc: "ซื้อขนม 35 บาท จ่ายเงิน 50 บาท ตรวจสอบว่า 'เงินพอหรือไม่' ถ้าพอ (ใช่) ให้ 'คำนวณเงินทอน 15 บาท' ถ้าไม่พอ (ไม่ใช่) ให้ 'แจ้งจ่ายเงินเพิ่ม'",
+                        slot1Correct: "เงินพอหรือไม่?",
+                        slot2Correct: "คำนวณเงินทอน 15 บาท",
+                        slot3Correct: "แจ้งจ่ายเงินเพิ่ม",
+                        pool: ["เงินพอหรือไม่?", "คำนวณเงินทอน 15 บาท", "แจ้งจ่ายเงินเพิ่ม", "แถมขนมฟรี", "บีบยาสีฟัน"]
+                    },
+                    {
+                        title: "ภารกิจที่ 3: ภารกิจตรวจสอบคะแนนสอบ 📝",
+                        desc: "ครูกำหนดเกณฑ์ผ่านที่ 50 คะแนน ตรวจสอบว่า 'คะแนน >= 50 หรือไม่' ถ้าใช่ ให้แสดงคำว่า 'ผ่าน' ถ้าไม่ใช่ ให้แสดงคำว่า 'ไม่ผ่าน'",
+                        slot1Correct: "คะแนน >= 50?",
+                        slot2Correct: "แสดงคำว่า ผ่าน",
+                        slot3Correct: "แสดงคำว่า ไม่ผ่าน",
+                        pool: ["คะแนน >= 50?", "แสดงคำว่า ผ่าน", "แสดงคำว่า ไม่ผ่าน", "ตื่นนอน", "ให้คะแนนเต็ม 100"]
+                    },
+                    {
+                        title: "ภารกิจที่ 4: ภารกิจหุ่นยนต์คัดแยกขยะ ♻️",
+                        desc: "ตรวจสอบขยะที่เก็บได้ ตรวจสอบว่า 'เป็นขยะรีไซเคิลหรือไม่' ถ้าใช่ ให้ 'ใส่ถังรีไซเคิล' ถ้าไม่ใช่ ให้ 'ใส่ถังขยะทั่วไป'",
+                        slot1Correct: "เป็นขยะรีไซเคิล?",
+                        slot2Correct: "ใส่ถังรีไซเคิล",
+                        slot3Correct: "ใส่ถังขยะทั่วไป",
+                        pool: ["เป็นขยะรีไซเคิล?", "ใส่ถังรีไซเคิล", "ใส่ถังขยะทั่วไป", "ทิ้งลงแม่น้ำ", "เผาขยะ"]
+                    },
+                    {
+                        title: "ภารกิจที่ 5: ภารกิจลับรหัสผ่านหุ่นยนต์ 🔑",
+                        desc: "กรอกรหัสผ่านเข้าเมืองหุ่นยนต์ ตรวจสอบว่า 'รหัสผ่านถูกต้องหรือไม่' ถ้าใช่ ให้ 'เข้าสู่ระบบสำเร็จ' ถ้าไม่ใช่ ให้ 'กรอกรหัสผ่านใหม่'",
+                        slot1Correct: "รหัสผ่านถูกต้อง?",
+                        slot2Correct: "เข้าสู่ระบบสำเร็จ",
+                        slot3Correct: "กรอกรหัสผ่านใหม่",
+                        pool: ["รหัสผ่านถูกต้อง?", "เข้าสู่ระบบสำเร็จ", "กรอกรหัสผ่านใหม่", "ปิดเครื่องทันที", "ส่งเสียงไซเรน"]
+                    }
+                ];
+                this.l5Idx = 0;
+            }
+
+            init() {
+                this.renderLevelGrid();
+                this.showScreen('home');
+                this.updateHeader();
+            }
+
+            toggleSound() {
+                this.sound.muted = !this.sound.muted;
+                document.getElementById('sound-icon').innerText = this.sound.muted ? '🔇' : '🔊';
+                if (!this.sound.muted) this.sound.play('click');
+            }
+
+            speakMascot(text) {
+                document.getElementById('mascot-speech').innerText = text;
+            }
+
+            updateHeader() {
+                document.getElementById('header-score').innerText = this.score;
+                
+                let currentStars = "0/3";
+                if (this.score >= 80) currentStars = "3/3";
+                else if (this.score >= 50) currentStars = "2/3";
+                else if (this.score > 0) currentStars = "1/3";
+
+                document.getElementById('header-stars').innerText = currentStars;
+                document.getElementById('header-level-badge').innerText = `ด่าน ${this.currentLevel}/5`;
+
+                // Progress Bar Calc
+                const pct = ((this.currentLevel - 1) / 5) * 100;
+                document.getElementById('header-progress').style.width = `${pct}%`;
+            }
+
+            showScreen(screenId) {
+                this.sound.play('click');
+                const screens = ['home', 'learn', 'level-1', 'level-2', 'level-3', 'level-4', 'level-5', 'summary'];
+                screens.forEach(s => {
+                    const el = document.getElementById(`screen-${s}`);
+                    if (el) el.classList.add('hidden');
+                });
+                const active = document.getElementById(`screen-${screenId}`);
+                if (active) active.classList.remove('hidden');
+
+                if (screenId === 'home') {
+                    this.speakMascot('ยินดีต้อนรับเข้าสู่ Robot City! พิชิตภารกิจผังงานสะสมคะแนนเต็ม 100 คะแนนกันครับ!');
+                } else if (screenId === 'learn') {
+                    this.speakMascot('ศึกษาจดจำสัญลักษณ์ผังงานทั้ง 5 แบบให้แม่นยำ ก่อนไปลุยด่านจริงนะครับ!');
+                } else if (screenId === 'summary') {
+                    this.speakMascot('เก่งมาก! ทำภารกิจครบเรียบร้อยแล้ว กดปุ่ม "เล่นใหม่อีกครั้ง" เพื่อทำคะแนนเต็ม 100 ได้เลย!');
+                }
+            }
+
+            renderLevelGrid() {
+                const grid = document.getElementById('level-select-grid');
+                grid.innerHTML = '';
+                const titles = ['1. สัญลักษณ์ (20b)', '2. เรียงลำดับ (20b)', '3. ผังงานแรก (20b)', '4. จับผิดผัง (20b)', '5. เงื่อนไข (20b)'];
+
+                for (let i = 1; i <= 5; i++) {
+                    const isUnlocked = i <= this.unlockedLevel;
+                    const btn = document.createElement('button');
+                    btn.className = `p-3 rounded-xl border text-xs font-bold transition flex flex-col items-center gap-1 ${
+                        isUnlocked 
+                            ? 'bg-slate-800 border-cyan-500/50 hover:border-cyan-400 text-cyan-300 shadow-md' 
+                            : 'bg-slate-900 border-slate-800 text-slate-600 opacity-60 cursor-not-allowed'
+                    }`;
+                    btn.disabled = !isUnlocked;
+                    btn.onclick = () => this.startLevel(i);
+                    btn.innerHTML = `
+                        <span>${isUnlocked ? '🔓' : '🔒'} ด่าน ${i}</span>
+                        <span class="text-[10px] text-slate-400">${titles[i-1]}</span>
+                    `;
+                    grid.appendChild(btn);
+                }
+            }
+
+            startMission() {
+                this.startLevel(this.unlockedLevel);
+            }
+
+            startLevel(lvl) {
+                this.currentLevel = lvl;
+                this.updateHeader();
+
+                if (lvl === 1) {
+                    this.l1Idx = 0;
+                    this.renderLevel1();
+                    this.showScreen('level-1');
+                    this.speakMascot('ด่านที่ 1: ตอบคำถามจับคู่รูปทรงสัญลักษณ์และความหมายให้ถูกต้องนะครับ!');
+                } else if (lvl === 2) {
+                    this.shuffleLevel2();
+                    this.showScreen('level-2');
+                    this.speakMascot('ด่านที่ 2: ช่วยเรียงลำดับขั้นตอน "การแปรงฟัน" ให้ถูกต้องจาก 1 ถึง 5 นะครับ!');
+                } else if (lvl === 3) {
+                    this.renderLevel3();
+                    this.showScreen('level-3');
+                    this.speakMascot('ด่านที่ 3: สร้างผังงานการเตรียมตัวไปโรงเรียน โดยเลือกข้อความใส่ในทรงผังงานให้ถูกต้อง!');
+                } else if (lvl === 4) {
+                    this.l4Idx = 0;
+                    this.renderLevel4();
+                    this.showScreen('level-4');
+                    this.speakMascot('ด่านที่ 4: สวมบทนักสืบ ค้นหาข้อผิดพลาดของผังงานและเลือกวิธีแก้ไขให้ถูกต้อง!');
+                } else if (lvl === 5) {
+                    this.l5Idx = 0;
+                    this.renderLevel5();
+                    this.showScreen('level-5');
+                    this.speakMascot('ด่านที่ 5 สุดยอดภารกิจ! วิเคราะห์เงื่อนไขและวางบล็อกสร้างผังงานให้สำเร็จนะ!');
+                }
+            }
+
+            // --- LEVEL 1 LOGIC ---
+            renderLevel1() {
+                document.getElementById('l1-question-idx').innerText = this.l1Idx + 1;
+                const qData = this.l1Data[this.l1Idx];
+                document.getElementById('l1-question-text').innerText = qData.q;
+
+                const grid = document.getElementById('l1-options-grid');
+                grid.innerHTML = '';
+
+                qData.options.forEach((opt) => {
+                    const btn = document.createElement('button');
+                    btn.className = "bg-slate-900 border-2 border-slate-700 hover:border-cyan-400 p-4 rounded-xl text-left transition transform hover:-translate-y-1 flex items-center gap-3";
+                    btn.onclick = () => this.checkLevel1(opt.correct, qData.hint);
+                    
+                    btn.innerHTML = `
+                        <div class="w-12 h-10 ${opt.shape} flex items-center justify-center font-bold text-white text-xs shrink-0 shadow">
+                            📌
+                        </div>
+                        <span class="text-sm font-semibold text-slate-200">${opt.text}</span>
+                    `;
+                    grid.appendChild(btn);
+                });
+            }
+
+            checkLevel1(isCorrect, hint) {
+                if (isCorrect) {
+                    this.sound.play('correct');
+                    this.score += 4; // 5 questions * 4 = 20 pts max
+                    this.speakMascot('เก่งมาก! ทำได้ถูกต้องแล้ว ⭐ (+4 คะแนน)');
+                    this.l1Idx++;
+                    if (this.l1Idx < this.l1Data.length) {
+                        this.renderLevel1();
+                    } else {
+                        this.completeLevel(1, 3);
+                    }
+                } else {
+                    this.sound.play('wrong');
+                    this.speakMascot(`เกือบแล้ว! ลองคิดอีกนิดนะ 💡 คำใบ้: ${hint}`);
+                }
+                this.updateHeader();
+            }
+
+            // --- LEVEL 2 LOGIC ---
+            shuffleLevel2() {
+                this.sound.play('click');
+                let shuffled;
+                do {
+                    shuffled = [...this.l2ItemsOriginal].sort(() => Math.random() - 0.5);
+                } while (shuffled.every((item, idx) => item.id === idx + 1));
+                
+                this.l2Items = shuffled;
+                this.l2Checked = false;
+                this.l2WrongIndices = [];
+                const feedbackEl = document.getElementById('l2-feedback');
+                if (feedbackEl) feedbackEl.className = 'hidden';
+                this.renderLevel2();
+            }
+
+            renderLevel2() {
+                const list = document.getElementById('l2-sequence-list');
+                list.innerHTML = '';
+
+                this.l2Items.forEach((item, idx) => {
+                    const isWrong = this.l2Checked && this.l2WrongIndices.includes(idx);
+                    const isCorrect = this.l2Checked && !this.l2WrongIndices.includes(idx);
+
+                    let borderStyle = "border-slate-700 bg-slate-900 hover:border-emerald-500";
+                    if (this.l2Checked) {
+                        borderStyle = isWrong 
+                            ? "border-rose-500 bg-rose-950/40 text-rose-200 animate-pulse" 
+                            : "border-emerald-500 bg-emerald-950/40 text-emerald-200";
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = `${borderStyle} border-2 p-3.5 rounded-xl flex justify-between items-center gap-3 transition cursor-grab active:cursor-grabbing select-none`;
+                    card.draggable = true;
+
+                    // Drag & Drop handlers
+                    card.ondragstart = (e) => {
+                        this.l2DraggedIdx = idx;
+                        card.classList.add('opacity-40', 'scale-95');
+                        e.dataTransfer.effectAllowed = 'move';
+                    };
+                    card.ondragend = () => {
+                        this.l2DraggedIdx = null;
+                        card.classList.remove('opacity-40', 'scale-95');
+                    };
+                    card.ondragover = (e) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'move';
+                    };
+                    card.ondrop = (e) => {
+                        e.preventDefault();
+                        if (this.l2DraggedIdx !== null && this.l2DraggedIdx !== idx) {
+                            const movedItem = this.l2Items.splice(this.l2DraggedIdx, 1)[0];
+                            this.l2Items.splice(idx, 0, movedItem);
+                            this.l2Checked = false;
+                            this.renderLevel2();
+                        }
+                    };
+
+                    card.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="text-slate-500 text-lg cursor-grab">☰</span>
+                            <span class="w-7 h-7 rounded-full bg-slate-800 border border-slate-600 font-bold text-xs flex items-center justify-center text-amber-400">
+                                ${idx + 1}
+                            </span>
+                            <span class="text-sm font-semibold text-slate-100">${item.text}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            ${isWrong ? '<span class="text-xs text-rose-400 font-bold">❌ ผิดตำแหน่ง</span>' : ''}
+                            ${isCorrect && this.l2Checked ? '<span class="text-xs text-emerald-400 font-bold">✓ ถูกต้อง</span>' : ''}
+                            <button onclick="app.moveLevel2(${idx}, -1)" ${idx === 0 ? 'disabled class="opacity-20 p-1.5"' : 'class="p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs hover:text-cyan-300"'} title="ย้ายขึ้น">⬆️</button>
+                            <button onclick="app.moveLevel2(${idx}, 1)" ${idx === this.l2Items.length - 1 ? 'disabled class="opacity-20 p-1.5"' : 'class="p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs hover:text-cyan-300"'} title="ย้ายลง">⬇️</button>
+                        </div>
+                    `;
+                    list.appendChild(card);
+                });
+            }
+
+            moveLevel2(idx, dir) {
+                this.sound.play('click');
+                const target = idx + dir;
+                if (target >= 0 && target < this.l2Items.length) {
+                    const temp = this.l2Items[idx];
+                    this.l2Items[idx] = this.l2Items[target];
+                    this.l2Items[target] = temp;
+                    this.l2Checked = false;
+                    this.renderLevel2();
+                }
+            }
+
+            checkLevel2() {
+                this.l2WrongIndices = [];
+                let isCorrect = true;
+
+                for (let i = 0; i < this.l2Items.length; i++) {
+                    if (this.l2Items[i].id !== i + 1) {
+                        isCorrect = false;
+                        this.l2WrongIndices.push(i);
+                    }
+                }
+                this.l2Checked = true;
+                this.renderLevel2();
+
+                const feedbackEl = document.getElementById('l2-feedback');
+
+                if (isCorrect) {
+                    this.sound.play('correct');
+                    this.score += 20; // 20 points for Level 2
+                    
+                    if (feedbackEl) {
+                        feedbackEl.className = 'p-4 rounded-xl text-sm font-semibold flex items-center gap-2 bg-emerald-950 border border-emerald-500 text-emerald-200';
+                        feedbackEl.innerHTML = '🎉 <strong>เก่งมาก! เรียงลำดับถูกต้องแล้ว</strong> ได้รับ 20 คะแนนเต็ม!';
+                    }
+
+                    this.speakMascot('เก่งมาก! เรียงลำดับถูกต้องแล้ว ⭐ (+20 คะแนน)');
+                    
+                    setTimeout(() => {
+                        this.completeLevel(2, 3);
+                    }, 1200);
+                } else {
+                    this.sound.play('wrong');
+                    
+                    if (feedbackEl) {
+                        feedbackEl.className = 'p-4 rounded-xl text-sm font-semibold flex items-center gap-2 bg-rose-950 border border-rose-500 text-rose-200';
+                        feedbackEl.innerHTML = '⚠️ <strong>ลำดับยังไม่ถูกต้อง ลองคิดอีกนิดนะ!</strong> (ใบ้: ต้องหยิบแปรงและบีบยาสีฟันก่อนแปรงฟันนะ)';
+                    }
+
+                    this.speakMascot('ลำดับยังไม่ถูกต้อง ลองคิดอีกนิดนะ! (ใบ้: ต้องหยิบแปรงและบีบยาสีฟันก่อนแปรงฟันนะ)');
+                }
+                this.updateHeader();
+            }
+
+            // --- LEVEL 3 LOGIC ---
+            renderLevel3() {
+                const slots = document.getElementById('l3-flowchart-slots');
+                slots.innerHTML = '';
+
+                this.l3Steps.forEach((s) => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = "flex flex-col items-center space-y-2";
+
+                    const shapeClass = s.shape === 'oval' ? 'shape-oval' : 'shape-process';
+
+                    wrapper.innerHTML = `
+                        <div class="w-full max-w-sm p-3 ${shapeClass} flex flex-col sm:flex-row items-center justify-between gap-2 shadow-lg">
+                            <span class="text-xs font-bold text-white uppercase px-2 py-0.5 bg-black/30 rounded">${s.label}</span>
+                            <select id="l3-select-${s.step}" class="w-full sm:w-48 px-2 py-1.5 bg-slate-900/90 border border-slate-700 text-xs font-semibold rounded-lg text-white focus:outline-none focus:border-amber-400">
+                                <option value="">-- เลือกข้อความ --</option>
+                                ${this.l3OptionsPool.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                            </select>
+                        </div>
+                        ${s.step < 7 ? `
+                            <svg class="w-6 h-6 text-cyan-400 animate-bounce-gentle my-1" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                                <path d="M19 14l-7 7m0 0l-7-7m7 7V3" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        ` : ''}
+                    `;
+                    slots.appendChild(wrapper);
+                });
+            }
+
+            checkLevel3() {
+                let allCorrect = true;
+                this.l3Steps.forEach(s => {
+                    const val = document.getElementById(`l3-select-${s.step}`).value;
+                    if (val !== s.correctVal) {
+                        allCorrect = false;
+                    }
+                });
+
+                if (allCorrect) {
+                    this.sound.play('correct');
+                    this.score += 20; // 20 points for level 3
+                    this.speakMascot('เก่งมาก! สร้างผังงานเตรียมตัวไปโรงเรียนได้ถูกต้องเรียบร้อยแล้ว!');
+                    this.completeLevel(3, 3);
+                } else {
+                    this.sound.play('wrong');
+                    this.speakMascot('ยังมีบางช่องที่ไม่ถูกต้องนะ! ลองทบทวนขั้นตอนเรียงลำดับ ตื่นนอน ➔ อาบน้ำ ➔ แต่งตัว ➔ ทานข้าว ➔ ไปโรงเรียน นะครับ');
+                }
+                this.updateHeader();
+            }
+
+            // --- LEVEL 4 LOGIC ---
+            renderLevel4() {
+                document.getElementById('l4-case-idx').innerText = this.l4Idx + 1;
+                const cData = this.l4Cases[this.l4Idx];
+                document.getElementById('l4-scenario-title').innerText = cData.title;
+                document.getElementById('l4-scenario-visual').innerText = cData.visual;
+
+                const optionsContainer = document.getElementById('l4-options');
+                optionsContainer.innerHTML = '';
+
+                cData.options.forEach((opt) => {
+                    const btn = document.createElement('button');
+                    btn.className = "w-full text-left p-3.5 bg-slate-900 border border-slate-700 hover:border-pink-500 rounded-xl text-xs md:text-sm text-slate-200 font-medium transition flex items-center gap-3";
+                    btn.onclick = () => this.checkLevel4(opt.correct, cData.hint);
+                    btn.innerHTML = `<span>🔍</span> <span>${opt.text}</span>`;
+                    optionsContainer.appendChild(btn);
+                });
+            }
+
+            checkLevel4(isCorrect, hint) {
+                if (isCorrect) {
+                    this.sound.play('correct');
+                    this.score += 5; // 4 cases * 5 = 20 pts max
+                    this.speakMascot('นักสืบเก่งมาก! จับผิดและแก้ไขผังงานได้ถูกต้องแล้วครับ ⭐ (+5 คะแนน)');
+                    this.l4Idx++;
+                    if (this.l4Idx < this.l4Cases.length) {
+                        this.renderLevel4();
+                    } else {
+                        this.completeLevel(4, 3);
+                    }
+                } else {
+                    this.sound.play('wrong');
+                    this.speakMascot(`ลองตรวจสอบอีกครั้งนะ! 💡 คำใบ้: ${hint}`);
+                }
+                this.updateHeader();
+            }
+
+            // --- LEVEL 5 LOGIC ---
+            renderLevel5() {
+                document.getElementById('l5-mission-idx').innerText = this.l5Idx + 1;
+                const mData = this.l5Missions[this.l5Idx];
+                document.getElementById('l5-mission-title').innerText = mData.title;
+                document.getElementById('l5-mission-desc').innerText = mData.desc;
+
+                const area = document.getElementById('l5-builder-area');
+                area.innerHTML = `
+                    <div class="bg-slate-950 p-6 rounded-2xl border border-purple-900/50 max-w-lg mx-auto flex flex-col items-center space-y-3">
+                        <!-- Start -->
+                        <div class="w-40 h-10 shape-oval flex items-center justify-center font-bold text-white text-xs shadow">
+                            เริ่มต้น
+                        </div>
+
+                        <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+
+                        <!-- Slot 1: Decision Diamond -->
+                        <div class="flex flex-col items-center">
+                            <span class="text-[10px] text-pink-400 font-bold mb-1">สี่เหลี่ยมข้าวหลามตัด (เงื่อนไข)</span>
+                            <select id="l5-slot-1" class="w-56 px-3 py-2 bg-pink-950 border-2 border-pink-500 rounded-xl text-xs font-bold text-pink-200 text-center focus:outline-none">
+                                <option value="">-- เลือกเงื่อนไข --</option>
+                                ${mData.pool.map(p => `<option value="${p}">${p}</option>`).join('')}
+                            </select>
+                        </div>
+
+                        <!-- Branches -->
+                        <div class="w-full grid grid-cols-2 gap-4 pt-2">
+                            <!-- Left Branch: Yes -->
+                            <div class="flex flex-col items-center border-t-2 border-l-2 border-emerald-500 pt-2 rounded-tl-xl">
+                                <span class="text-xs font-bold text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-700 mb-2">ใช่</span>
+                                <select id="l5-slot-2" class="w-full px-2 py-2 bg-emerald-950 border border-emerald-500 rounded-lg text-xs font-semibold text-emerald-200 text-center">
+                                    <option value="">-- เลือกขั้นตอน --</option>
+                                    ${mData.pool.map(p => `<option value="${p}">${p}</option>`).join('')}
+                                </select>
+                            </div>
+
+                            <!-- Right Branch: No -->
+                            <div class="flex flex-col items-center border-t-2 border-r-2 border-rose-500 pt-2 rounded-tr-xl">
+                                <span class="text-xs font-bold text-rose-400 bg-rose-950 px-2 py-0.5 rounded border border-rose-700 mb-2">ไม่ใช่</span>
+                                <select id="l5-slot-3" class="w-full px-2 py-2 bg-rose-950 border border-rose-500 rounded-lg text-xs font-semibold text-rose-200 text-center">
+                                    <option value="">-- เลือกขั้นตอน --</option>
+                                    ${mData.pool.map(p => `<option value="${p}">${p}</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+
+                        <svg class="w-5 h-5 text-purple-400 mt-2" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+
+                        <!-- End -->
+                        <div class="w-40 h-10 shape-oval flex items-center justify-center font-bold text-white text-xs shadow">
+                            สิ้นสุด
+                        </div>
+                    </div>
+                `;
+            }
+
+            checkLevel5() {
+                const mData = this.l5Missions[this.l5Idx];
+                const s1 = document.getElementById('l5-slot-1').value;
+                const s2 = document.getElementById('l5-slot-2').value;
+                const s3 = document.getElementById('l5-slot-3').value;
+
+                if (s1 === mData.slot1Correct && s2 === mData.slot2Correct && s3 === mData.slot3Correct) {
+                    this.sound.play('correct');
+                    this.score += 4; // 5 missions * 4 = 20 pts max
+                    this.speakMascot('สุดยอด! สามารถวางโครงสร้างเงื่อนไขผังงานได้ถูกต้องสมบูรณ์! ⭐ (+4 คะแนน)');
+                    this.l5Idx++;
+                    if (this.l5Idx < this.l5Missions.length) {
+                        this.renderLevel5();
+                    } else {
+                        this.completeLevel(5, 3);
+                    }
+                } else {
+                    this.sound.play('wrong');
+                    this.speakMascot('เงื่อนไขหรือการเลือกเส้นทาง ใช่/ไม่ใช่ ยังไม่ถูกต้อง ลองอ่านโจทย์อีกครั้งนะครับ!');
+                }
+                this.updateHeader();
+            }
+
+            completeLevel(lvl) {
+                if (this.unlockedLevel === lvl && lvl < 5) {
+                    this.unlockedLevel = lvl + 1;
+                }
+                this.renderLevelGrid();
+                this.updateHeader();
+
+                if (lvl < 5) {
+                    this.sound.play('win');
+                    alert(`🎉 ยอดเยี่ยมมาก! คุณผ่านด่านที่ ${lvl} แล้ว! ไปลุยด่านต่อไปกันเลย`);
+                    this.startLevel(lvl + 1);
+                } else {
+                    this.sound.play('win');
+                    this.showSummary();
+                }
+            }
+
+            showSummary() {
+                document.getElementById('summary-score').innerText = `${this.score} / 100`;
+                
+                let starText = "⭐";
+                let gradeTitle = "นักสร้างผังงานฝึกหัด";
+                let cheerMsg = "พยายามได้ดีมาก! ลองฝึกซ้ำอีกนิดเพื่อเพิ่มคะแนนให้ถึง 100 คะแนนนะ!";
+
+                if (this.score >= 80) {
+                    starText = "⭐⭐⭐";
+                    gradeTitle = "สุดยอดนักสร้างผังงาน";
+                    cheerMsg = "สุดยอด! เธอเป็นสุดยอดนักสร้างผังงานระดับเทพแล้ว!";
+                } else if (this.score >= 50) {
+                    starText = "⭐⭐";
+                    gradeTitle = "นักสร้างผังงานระดับกลาง";
+                    cheerMsg = "เก่งมาก! ทำได้ถูกต้องหลายด่านแล้ว!";
+                }
+
+                document.getElementById('summary-stars').innerText = starText;
+                document.getElementById('summary-grade').innerText = `ระดับ: ${gradeTitle}`;
+                document.getElementById('summary-cheer').innerText = cheerMsg;
+                this.showScreen('summary');
+            }
+
+            restartGame() {
+                this.sound.play('click');
+                this.score = 0;
+                this.currentLevel = 1;
+                this.unlockedLevel = 1;
+                this.renderLevelGrid();
+                this.updateHeader();
+                this.startLevel(1);
+            }
+
+            resetProgress() {
+                if (confirm('คุณต้องการเริ่มเกมใหม่ทั้งหมดใช่หรือไม่?')) {
+                    this.score = 0;
+                    this.currentLevel = 1;
+                    this.unlockedLevel = 1;
+                    this.renderLevelGrid();
+                    this.updateHeader();
+                    this.showScreen('home');
+                }
+            }
+        }
+
+        // Initialize App on Page Load
+        let app;
+        window.onload = () => {
+            app = new FlowchartApp();
+            app.init();
+        };
+    </script>
+</body>
+</html>
